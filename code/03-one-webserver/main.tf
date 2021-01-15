@@ -1,12 +1,12 @@
 # Configure the Google Cloud provider
 provider "google" {
-  project = "terraform-examples-gcloud"
-  region  = "us-east1"
+  project = "terraform-gcloud1"
+  region  = "asia-southeast1"
 }
 
 # Create a Google Compute Firewall
 resource "google_compute_firewall" "instance" {
-  name    = "terraform-example-instance"
+  name    = "terraform-gcloud"
   network = "default"
 
   source_ranges = ["0.0.0.0/0"]
@@ -21,7 +21,7 @@ resource "google_compute_firewall" "instance" {
 resource "google_compute_instance" "example" {
   name          = "example"
   machine_type  = "f1-micro"
-  zone          = "us-east1-b"
+  zone          = "asia-southeast1-a"
   
   boot_disk {
     initialize_params {
@@ -44,5 +44,5 @@ resource "google_compute_instance" "example" {
 
 # Output variable: Public IP address
 output "public_ip" {
-  value = "${google_compute_instance.example.network_interface.0.access_config.0.assigned_nat_ip}"
+  value = "http://${google_compute_instance.example.network_interface.0.access_config.0.nat_ip}:8080"
 }

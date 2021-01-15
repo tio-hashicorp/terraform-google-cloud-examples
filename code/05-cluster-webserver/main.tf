@@ -1,7 +1,7 @@
 # Configure the Google Cloud provider
 provider "google" {
-  project = "terraform-examples-gcloud"
-  region  = "us-east1"
+  project = "terraform-gcloud1"
+  region  = var.region
 }
 
 # Create a Google Compute Address
@@ -18,7 +18,7 @@ resource "google_compute_firewall" "instance" {
 
   allow {
     protocol = "tcp"
-    ports    = ["${var.server_port}"]
+    ports    = [var.server_port]
   }
 }
 
@@ -27,14 +27,14 @@ resource "google_compute_firewall" "instance" {
 # Create a Google Compute Forwarding Rule
 resource "google_compute_forwarding_rule" "example" {
   name       = "example-forwarding-rule"
-  target     = "${google_compute_target_pool.example.self_link}"
+  target     = google_compute_target_pool.example.self_link
   port_range = "80"
-  ip_address = "${google_compute_address.example.address}"
+  ip_address = google_compute_address.example.address
 }
 
 resource "google_compute_target_pool" "example" {
   name          = "example-target-pool"
-  health_checks = ["${google_compute_http_health_check.example.name}"]
+  health_checks = [google_compute_http_health_check.example.name]
 }
 
 # Create a Google Compute Http Health Check
@@ -45,7 +45,7 @@ resource "google_compute_http_health_check" "example" {
   timeout_sec          = 3
   healthy_threshold    = 2
   unhealthy_threshold  = 2
-  port                 = "${var.server_port}"
+  port                 = var.server_port
 }
 
 #---------------------------------------------------------------------
@@ -53,20 +53,22 @@ resource "google_compute_http_health_check" "example" {
 # Create a Google Compute instance Group Manager
 resource "google_compute_instance_group_manager" "example" {
   name = "example-group-manager"
-  zone = "us-east1-b"
+  zone = var.zone
 
-  instance_template  = "${google_compute_instance_template.example.self_link}"
-  target_pools       = ["${google_compute_target_pool.example.self_link}"]
+  version {
+    instance_template  = google_compute_instance_template.example.id
+  }
+  target_pools       = [google_compute_target_pool.example.id]
   base_instance_name = "example"
 }
 
 # Create a Google Compute Autoscaler
 resource "google_compute_autoscaler" "example" {
   name   = "example-autoscaler"
-  zone   = "us-east1-b"
-  target = "${google_compute_instance_group_manager.example.self_link}"
+  zone   = var.zone
+  target = google_compute_instance_group_manager.example.self_link
 
-  autoscaling_policy = {
+  autoscaling_policy {
     max_replicas    = 8
     min_replicas    = 2
     cooldown_period = 60
@@ -89,7 +91,8 @@ resource "google_compute_instance_template" "example" {
     network = "default"
   }
   
-  metadata_startup_script = "echo 'Hello, World' > index.html ; nohup busybox httpd -f -p ${var.server_port} &"
+  metadata_startup_script = "echo Hello $(hostname) world > index.html ; nohup busybox httpd -f -p ${var.server_port} &"
+
 }
 
 #---------------------------------------------------------------------

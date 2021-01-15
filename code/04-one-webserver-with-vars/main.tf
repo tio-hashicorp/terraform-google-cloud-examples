@@ -1,10 +1,11 @@
 # Configure the Google Cloud provider
 provider "google" {
-  project = "terraform-examples-gcloud"
-  region  = "us-east1"
+  project = "terraform-gcloud1"
+  region  = "asia-southeast1"
 }
 
 # Create a Google Compute Firewall
+
 resource "google_compute_firewall" "instance" {
   name    = "terraform-example-instance"
   network = "default"
@@ -13,15 +14,16 @@ resource "google_compute_firewall" "instance" {
 
   allow {
     protocol = "tcp"
-    ports    = ["${var.server_port}"]
+    ports    = [var.server_port]
   }
 }
+
 
 # Create a Google Compute instance
 resource "google_compute_instance" "example" {
   name          = "example"
   machine_type  = "f1-micro"
-  zone          = "us-east1-b"
+  zone          = "asia-southeast1-a"
   
   boot_disk {
     initialize_params {
